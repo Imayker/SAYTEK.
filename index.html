@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Показать картинку по слову</title>
+  <style>
+    body {
+      background: #1e1e2f;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #f0f0f0;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    input[type="text"] {
+      padding: 12px;
+      border: 2px solid #555;
+      border-radius: 8px;
+      background: #2d2d44;
+      color: #fff;
+      margin-bottom: 15px;
+      width: 220px;
+      opacity: 0;
+      animation: fadeIn 1s forwards 0.5s;
+    }
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      background: #4e6ef2;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+      opacity: 0;
+      animation: fadeIn 1s forwards 1s;
+    }
+    button:hover {
+      background: #3b53c5;
+    }
+    #imageContainer {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+    }
+    #imageContainer img {
+      max-width: 90%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      transform: scale(0.8);
+      opacity: 0;
+      transition: all 0.5s ease;
+    }
+    #imageContainer.show img {
+      transform: scale(1);
+      opacity: 1;
+    }
+    #imageContainer {
+      color: #fff;
+      font-size: 18px;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Введите слово</h1>
+  <input type="text" id="wordInput" placeholder="Введите слово">
+  <button onclick="checkWord()">Показать картинку</button>
+  <div id="imageContainer"></div>  <script>
+    function checkWord() {
+      const word = document.getElementById('wordInput').value.trim().toLowerCase();
+      const imageContainer = document.getElementById('imageContainer');
+      imageContainer.classList.remove('show');
+      imageContainer.innerHTML = '';
+
+      if (word === 'кот') {
+        const img = document.createElement('img');
+        img.src = 'https://steamuserimages-a.akamaihd.net/ugc/1806529912255160538/5F20B565707FF4F5E5F6E0E5E4C47A297B08161D/?imw=512&imh=341&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true';
+        img.alt = 'Картинка';
+        imageContainer.appendChild(img);
+        setTimeout(() => imageContainer.classList.add('show'), 10);
+      } else {
+        imageContainer.textContent = 'Нет картинки для этого слова.';
+      }
+    }
+  </script></body>
+</html>
