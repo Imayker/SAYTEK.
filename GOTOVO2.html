@@ -1,0 +1,481 @@
+
+<!DOCTYPE html><html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Квест-поздравление</title>
+<style>
+  :root {
+    --primary: #2a0a1b;
+    --accent: #d22d4e;
+    --text: #fff4f8;
+    --card-bg: rgba(40, 0, 30, 0.85);
+  }
+  body {
+    position: relative;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #1a0012;
+    background: linear-gradient(135deg, #1a0012, #4e0035);
+    background-size: cover;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    max-width: 500px;
+    width: auto;
+    background: url('https://i.imgur.com/V30pTXH.png') no-repeat left center;
+    background-size: contain;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container {
+    position: relative;
+    z-index: 10;
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(255, 0, 90, 0.4);
+    max-width: 640px;
+    width: 90%;
+    text-align: center;
+    color: var(--text);
+    border: 2px solid var(--accent);
+  }
+  .corner-decoration {
+    position: absolute;
+    top: -92px;
+    right: -30px;
+    width: 140px;
+    height: auto;
+    filter: drop-shadow(0 0 8px #ff66b2) drop-shadow(0 0 14px #ff1493);
+    transform: rotate(-2deg);
+    pointer-events: none;
+  }
+  .step { display: none; }
+  .step.active { display: block; }
+  .hidden { display: none; }
+  input[type="text"] {
+    padding: 12px;
+    width: 80%;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #aa3a63;
+    font-size: 16px;
+    background-color: #3a0026;
+    color: #fff0f8;
+  }
+  button {
+    margin-top: 20px;
+    padding: 12px 24px;
+    font-size: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover { background: #ff4e75; }
+  #password-error { margin-top: 10px; color: #ff9999; }
+  .clown-emoji {
+    font-size: 48px;
+    animation: clownFade 1s ease-out;
+    margin-top: 20px;
+  }
+  .choice-buttons button {
+    display: block;
+    margin: 10px auto;
+  }
+  @keyframes clownFade {
+    0% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .puzzle-container {
+    margin: 20px auto;
+    width: 360px;
+    height: 360px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 3px;
+    user-select: none;
+  }
+  .puzzle-piece {
+    background-size: 300% 300%;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    cursor: grab;
+    border: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .puzzle-piece.dragging { opacity: 0.7; cursor: grabbing; border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="background-image"></div>
+<div class="container">
+  <img class="corner-decoration" src="https://i.imgur.com/oFMNl8w.png" alt="decor">
+  <div id="step1" class="step active">
+    <h2>Шаг 1: Введите пароль</h2>
+    <input type="text" id="password-input" placeholder="Введите пароль...">
+    <button id="check-pass-btn">Проверить</button>
+    <p id="password-error" class="hidden">Неверный пароль</p>
+  </div>
+  <div id="step2" class="step">
+    <h2>Шаг 2: Пазл 1</h2>
+    <div id="puzzle1" class="puzzle-container"></div>
+    <button id="puzzle1-next" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step3" class="step">
+    <h2>Шаг 3: Пазл 2</h2>
+    <p>Думала всё так просто? 😝😝😝 Тебе нужно развивать мозги пупс 😋</p>
+    <div id="puzzle2" class="puzzle-container"></div>
+    <button id="puzzle2-next" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step4" class="step">
+    <h2>Шаг 4: Пазл 3</h2>
+    <div id="puzzle3" class="puzzle-container"></div>
+    <button id="puzzle3-next" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step5" class="step">
+    <h2>Шаг 5: Выбор действия</h2>
+    <div id="choice-buttons" class="choice-buttons">
+      <button onclick="handleChoice(1)">Открыть подарок сейчас</button>
+      <button onclick="handleChoice(2)">Мне нужно подумать</button>
+      <button onclick="handleChoice(3)">Хочу страдать</button>
+      <button onclick="handleChoice(4)">Где мой торт?</button>
+    </div>
+    <p id="choice-response"></p>
+    <div id="clown-container" class="hidden clown-emoji">🤡</div>
+    <button id="choice-back" class="hidden" onclick="resetChoices()">Назад</button>
+    <button id="choice-continue" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step6" class="step">
+    <h2>Шаг 6: Тыкай</h2>
+    <p id="click-msg">Подарок уже близко, забери его!</p>
+    <button onclick="clickCounter()">Тыкай</button>
+    <button id="click-continue" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step7" class="step">
+    <h2>Шаг 7: Накорми Чонгука клубникой</h2>
+    <p>Перетащи все клубнички Чонгуку в рот 🍓</p>
+    <div style="position: relative; display: inline-block;">
+      <img src="https://i.imgur.com/l5uhPok.jpeg" width="300" id="jk-img" alt="Чонгук" style="border-radius: 16px;">
+      <div id="mouth-dropzone"
+          style="position: absolute; top: 72%; left: 51.5%; transform: translate(-50%, -50%);
+                  width: 70px; height: 50px; border-radius: 50%; border: 2px dashed #ff5599;
+                  background-color: rgba(255, 255, 255, 0.15);">
+      </div>
+    </div>
+    <div id="strawberries"
+        style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+    <button id="feed-next" class="hidden" onclick="nextStep()">Продолжить</button>
+  </div>
+  <div id="step8" class="step">
+    <h2>Финал 🎉</h2>
+    <p>Поздравляю, ты прошла все испытания и заслужила подарок!</p>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://t.me/dere12333" width="200" height="200" alt="QR Code">
+  </div>
+</div>
+<script>
+const correctPassword = 'подарок';
+let currentStep = 1;
+let choicesMade = new Set();
+let clickCount = 0;
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.toggle('active', i === n - 1);
+  });
+  currentStep = n;
+
+  if (n === 7) setupStrawberryGame(); // запускаем игру с Чонгуком
+}
+
+function nextStep() {
+  showStep(currentStep + 1);
+}
+
+function checkPassword() {
+  const input = document.getElementById('password-input').value.trim().toLowerCase();
+  const error = document.getElementById('password-error');
+  if (input === correctPassword) {
+    error.classList.add('hidden');
+    showStep(2);
+  } else {
+    error.classList.remove('hidden');
+  }
+}
+
+document.getElementById('check-pass-btn').addEventListener('click', checkPassword);
+
+function handleChoice(id) {
+  const responses = {
+    1: 'Ещё рано, помучайся немного.',
+    2: 'Нечего думать, уже всё решено за тебя.',
+    3: 'Ну... как пажелаешь',
+    4: 'Торт был. Я его съел. Прости.'
+  };
+
+  document.getElementById('choice-response').innerText = responses[id];
+  document.getElementById('choice-buttons').classList.add('hidden');
+  document.getElementById('choice-back').classList.add('hidden');
+  document.getElementById('clown-container').classList.add('hidden');
+
+  if (id === 3) {
+    document.getElementById('clown-container').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('clown-container').classList.add('hidden');
+      document.getElementById('choice-back').classList.remove('hidden');
+    }, 5000);
+  } else {
+    document.getElementById('choice-back').classList.remove('hidden');
+  }
+
+  choicesMade.add(id);
+  if (choicesMade.size === 4) {
+    document.getElementById('choice-continue').classList.remove('hidden');
+  }
+}
+
+function resetChoices() {
+  document.getElementById('choice-response').innerText = '';
+  document.getElementById('clown-container').classList.add('hidden');
+  document.getElementById('choice-back').classList.add('hidden');
+  document.getElementById('choice-buttons').classList.remove('hidden');
+}
+
+function clickCounter() {
+  const phrases = [
+    'Тыкай дальше и читай всё, что я тебе говорю',
+    'Я пошутил, никакого подарка',
+    'Тыкай дальше и запоминай всё, что я тебе говорю',
+    'Ещё чуть-чуть, не сдавайся',
+    'Скоро, скоро… или не скоро',
+    'Ты молодец, продолжай',
+    'У тебя получается всё лучше',
+    'Терпение — путь к награде',
+    'Ещё парочка нажатий и ты узнаешь правду',
+    'Серьёзно, это почти финал',
+    'Надеюсь, ты не устала тыкать',
+    'Твоя настойчивость — восхищает!',
+    'ТЫК-ТЫК! ТЫК-ТЫК-ТЫК!',
+    'Не сдавайся! Подарок уже вот-вот',
+    'Иногда жизнь — это просто куча тыков'
+  ];
+
+  const msg = document.getElementById('click-msg');
+  msg.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+  clickCount++;
+
+  if (clickCount > 50) {
+    msg.innerText = 'Хорошо, ты прошла. Подарок ждёт тебя.';
+    document.getElementById('click-continue').classList.remove('hidden');
+  }
+}
+
+// --- Пазлы ---
+class Puzzle {
+  constructor(containerId, imageUrl) {
+    this.container = document.getElementById(containerId);
+    this.imageUrl = imageUrl;
+    this.rows = 3;
+    this.cols = 3;
+    this.total = this.rows * this.cols;
+    this.correctOrder = [...Array(this.total).keys()];
+    this.currentOrder = [];
+    this.selectedPiece = null;
+    this.init();
+  }
+
+  init() {
+    this.currentOrder = this.shuffle([...this.correctOrder]);
+    this.render();
+  }
+
+  shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  render() {
+    this.container.innerHTML = '';
+    for (let i = 0; i < this.total; i++) {
+      const piece = document.createElement('div');
+      piece.classList.add('puzzle-piece');
+
+      const correctIndex = this.currentOrder[i];
+      const correctCol = correctIndex % this.cols;
+      const correctRow = Math.floor(correctIndex / this.rows);
+
+      const bgX = (correctCol * 100) / (this.cols - 1);
+      const bgY = (correctRow * 100) / (this.rows - 1);
+
+      piece.style.backgroundImage = `url(${this.imageUrl})`;
+      piece.style.backgroundSize = `${this.cols * 100}% ${this.rows * 100}%`;
+      piece.style.backgroundPosition = `${bgX}% ${bgY}%`;
+
+      piece.addEventListener('click', () => this.onPieceClick(i));
+      this.container.appendChild(piece);
+    }
+  }
+
+  onPieceClick(index) {
+    if (this.selectedPiece === null) {
+      this.selectedPiece = index;
+      this.highlightPiece(index, true);
+    } else if (this.selectedPiece === index) {
+      this.highlightPiece(index, false);
+      this.selectedPiece = null;
+    } else {
+      [this.currentOrder[this.selectedPiece], this.currentOrder[index]] =
+        [this.currentOrder[index], this.currentOrder[this.selectedPiece]];
+      this.selectedPiece = null;
+      this.render();
+      this.checkComplete();
+    }
+  }
+
+  highlightPiece(index, on) {
+    const pieces = this.container.children;
+    if (on) pieces[index].classList.add('dragging');
+    else pieces[index].classList.remove('dragging');
+  }
+
+  checkComplete() {
+    for (let i = 0; i < this.total; i++) {
+      if (this.currentOrder[i] !== this.correctOrder[i]) return false;
+    }
+    this.showNextButton();
+    return true;
+  }
+
+  showNextButton() {
+    const btnId = this.container.id + '-next';
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.remove('hidden');
+  }
+}
+
+// --- Запуск пазлов при загрузке ---
+window.onload = () => {
+  new Puzzle('puzzle1', 'https://i.postimg.cc/PprHrdfd/image.jpg');
+  new Puzzle('puzzle2', 'https://i.imgur.com/LoRa0r1.jpeg');
+  new Puzzle('puzzle3', 'https://i.postimg.cc/KkLPjh0s/image.jpg');
+};
+
+// --- Мини-игра с Чонгуком ---
+function setupStrawberryGame() {
+  const strawberrySrc = "https://i.imgur.com/FuE5qlE.png";
+  const container = document.getElementById("strawberries");
+  const dropzone = document.getElementById("mouth-dropzone");
+  const nextBtn = document.getElementById("feed-next");
+  const total = 15;
+  let fedCount = 0;
+  container.innerHTML = '';
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  for (let i = 0; i < total; i++) {
+    const img = document.createElement("img");
+    img.src = strawberrySrc;
+    img.width = 40;
+    img.height = 40;
+    img.id = "berry_" + i;
+    img.style.cursor = "grab";
+    img.style.position = "relative";
+    img.style.touchAction = "none";
+    container.appendChild(img);
+    if (isTouchDevice) {
+      img.addEventListener("touchstart", touchStart);
+      img.addEventListener("touchmove", touchMove);
+      img.addEventListener("touchend", touchEnd);
+    } else {
+      img.setAttribute("draggable", true);
+      img.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", img.id);
+      });
+    }
+  }
+
+  if (!isTouchDevice) {
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.style.backgroundColor = "rgba(255, 100, 150, 0.2)";
+    });
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.style.backgroundColor = "rgba(255,255,255,0.1)";
+    });
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData("text/plain");
+      const berry = document.getElementById(id);
+      if (berry) handleSuccess(berry);
+    });
+  }
+
+  function touchStart(e) {
+    const touch = e.touches[0];
+    const berry = e.target;
+    berry.dataset.offsetX = touch.clientX - berry.getBoundingClientRect().left;
+    berry.dataset.offsetY = touch.clientY - berry.getBoundingClientRect().top;
+    berry.style.zIndex = 1000;
+  }
+
+  function touchMove(e) {
+    const touch = e.touches[0];
+    const berry = e.target;
+    const offsetX = parseFloat(berry.dataset.offsetX);
+    const offsetY = parseFloat(berry.dataset.offsetY);
+    berry.style.position = "absolute";
+    berry.style.left = `${touch.clientX - offsetX}px`;
+    berry.style.top = `${touch.clientY - offsetY}px`;
+  }
+
+  function touchEnd(e) {
+    const berry = e.target;
+    const berryRect = berry.getBoundingClientRect();
+    const dropRect = dropzone.getBoundingClientRect();
+    const overlap = !(
+      berryRect.right < dropRect.left ||
+      berryRect.left > dropRect.right ||
+      berryRect.bottom < dropRect.top ||
+      berryRect.top > dropRect.bottom
+    );
+    if (overlap) {
+      handleSuccess(berry);
+    } else {
+      berry.style.position = "relative";
+      berry.style.left = '';
+      berry.style.top = '';
+      berry.style.zIndex = '';
+    }
+  }
+
+  function handleSuccess(berry) {
+    berry.remove();
+    fedCount++;
+    dropzone.style.backgroundColor = "rgba(255,255,255,0.1)";
+    if (fedCount >= total) {
+      nextBtn.classList.remove("hidden");
+    }
+  }
+}
+</script>
+</body>
+</html>
